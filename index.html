@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoicePing — Automated invoice reminders that get you paid</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #16203a;
+    --text: #e6ebf5;
+    --muted: #9aa5b8;
+    --accent: #22c55e;
+    --accent-dark: #16a34a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
+  header { padding: 48px 0 8px; text-align: center; }
+  .logo { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+  .logo span { color: var(--accent); }
+  .hero { text-align: center; padding: 40px 0 24px; }
+  h1 { font-size: 36px; line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.02em; }
+  .sub { font-size: 18px; color: var(--muted); max-width: 560px; margin: 0 auto 32px; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 32px 0; }
+  .step { background: var(--panel); border-radius: 12px; padding: 20px 16px; text-align: center; }
+  .step .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: #052e12; font-weight: 700; margin-bottom: 10px;
+  }
+  .step h3 { font-size: 15px; margin: 8px 0 6px; }
+  .step p { font-size: 13px; color: var(--muted); margin: 0; }
+  form { display: flex; gap: 10px; max-width: 440px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+  input[type=email] {
+    flex: 1; min-width: 220px; padding: 14px 16px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+    background: #0b1324; color: var(--text); font-size: 15px;
+  }
+  input[type=email]::placeholder { color: var(--muted); }
+  button {
+    padding: 14px 22px; border-radius: 10px; border: none; background: var(--accent);
+    color: #052e12; font-weight: 700; font-size: 15px; cursor: pointer;
+  }
+  button:hover { background: var(--accent-dark); }
+  .cta-wrap { text-align: center; margin: 40px 0; }
+  .msg { margin-top: 14px; font-size: 14px; min-height: 20px; }
+  .msg.ok { color: var(--accent); }
+  .msg.err { color: #f87171; }
+  footer { text-align: center; color: var(--muted); font-size: 13px; padding: 40px 0 60px; }
+  .pill { display: inline-block; background: rgba(34,197,94,0.12); color: var(--accent); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 999px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Invoice<span>Ping</span></div>
+  </header>
+
+  <section class="hero">
+    <div class="pill">In testing — early access</div>
+    <h1>Stop chasing unpaid invoices. Let InvoicePing do it for you.</h1>
+    <p class="sub">Freelancers and trades lose thousands every year to invoices they were too busy or too awkward to chase. InvoicePing sends friendly, automated payment reminders on WhatsApp, SMS and email — on your behalf, until you get paid.</p>
+  </section>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <h3>Add an invoice</h3>
+      <p>Client name, amount, due date. Takes 30 seconds.</p>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <h3>We chase, politely</h3>
+      <p>Scheduled reminders via WhatsApp, SMS or email — never awkward, always on time.</p>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <h3>You get paid faster</h3>
+      <p>No more forgotten invoices or uncomfortable follow-up calls.</p>
+    </div>
+  </div>
+
+  <div class="cta-wrap">
+    <div class="panel">
+      <h2 style="margin-top:0; font-size:20px;">Want early access?</h2>
+      <p class="sub" style="margin-bottom:20px;">We're testing this with a small group first. Leave your email and we'll reach out.</p>
+      <form id="signup-form">
+        <input type="email" id="email" name="email" placeholder="you@business.com" required>
+        <button type="submit">Get early access</button>
+      </form>
+      <div class="msg" id="msg"></div>
+    </div>
+  </div>
+
+  <footer>
+    InvoicePing is a work-in-progress test. No product exists yet — we're validating interest.
+  </footer>
+</div>
+
+<script>
+  const form = document.getElementById('signup-form');
+  const msg = document.getElementById('msg');
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    msg.textContent = '';
+    msg.className = 'msg';
+    try {
+      const res = await fetch('/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        msg.textContent = "Thanks — you're on the list!";
+        msg.classList.add('ok');
+        form.reset();
+      } else {
+        msg.textContent = data.error || 'Something went wrong, please try again.';
+        msg.classList.add('err');
+      }
+    } catch (err) {
+      msg.textContent = 'Network error, please try again.';
+      msg.classList.add('err');
+    }
+  });
+</script>
+</body>
+</html>
