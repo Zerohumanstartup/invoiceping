@@ -39,9 +39,25 @@ function handleSignup(req, res) {
   });
 }
 
+function handleAdminSignups(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const key = url.searchParams.get('key');
+  if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: false, error: 'Unauthorized' }));
+  }
+  const signups = readSignups();
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({ ok: true, count: signups.length, signups }));
+}
+
 http.createServer((req, res) => {
-  if (req.method === 'POST' && req.url === '/signup') {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  if (req.method === 'POST' && url.pathname === '/signup') {
     return handleSignup(req, res);
+  }
+  if (req.method === 'GET' && url.pathname === '/admin/signups') {
+    return handleAdminSignups(req, res);
   }
   res.writeHead(200, { 'Content-Type': 'text/html' });
   res.end(html);
